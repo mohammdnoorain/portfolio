@@ -8,6 +8,7 @@ import Work from './components/Work';
 import Experience from './components/Experience';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
+import WorkDevops from './components/WorkDevops';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Navbar/>
 <Hero/>
 <About/>
+<WorkDevops/>
 <Work/>
 <Experience/>
 <Contact/>

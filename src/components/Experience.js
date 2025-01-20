@@ -8,13 +8,13 @@ const Experience = () => {
 
 
         <div className='mb-[20px] text-white bg-gray-700/20 p-4 rounded-3xl max-w-[300px] sm:max-w-[600px] mx-auto'>
-        <p>Software Solution & Services</p>
-        <p className='text-gray-400'>(March 2023 - Dec 2023)</p>
+       
+        <p>PitchCats Pvt ltd</p>
+        <p className='text-gray-400'>(jan 2024 - Present)</p>
         <p className='text-gray-500'>
 
             Description of your experience in this company
         </p>
-        
         
         </div>
 
@@ -22,8 +22,10 @@ const Experience = () => {
 
 
         <div className='mb-[20px] text-white bg-gray-700/20 p-4 rounded-3xl max-w-[300px] sm:max-w-[600px] mx-auto'>
-        <p>PitchCats Pvt ltd</p>
-        <p className='text-gray-400'>(jan 2024 - Present)</p>
+       
+
+        <p>Software Solution & Services</p>
+        <p className='text-gray-400'>(March 2023 - Dec 2023)</p>
         <p className='text-gray-500'>
 
             Description of your experience in this company
