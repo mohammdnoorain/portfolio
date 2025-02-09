@@ -44,7 +44,7 @@ const Contact = () => {
                 stroke="currentColor"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                className="w-6 h-6"
+                className="w-6 h-10"
               >
                 <path
                   stroke-linecap="round"
@@ -55,6 +55,55 @@ const Contact = () => {
               </svg>
               <div className="ml-4 text-md tracking-wide w-40">
                 <p>Mohammad Noorain</p>
+                
+            
+              </div>
+            </div>
+
+
+            <div className="flex items-center mt-2 text-gray-400">
+              <svg
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                className="w-6 h-6"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M3 817.89.5.26"
+                ></path>
+              </svg>
+              <div className="ml-4 text-md tracking-wide w-40">
+           
+                
+                <p>noorain.mohammad908@gmail.com</p>
+              
+              </div>
+            </div>
+
+            <div className="flex items-center mt-2 text-gray-400">
+              <svg
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                className="w-6 h-10"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M3 817.89.5.26"
+                ></path>
+              </svg>
+              <div className="ml-4 text-md tracking-wide w-40">
+           
+                
+                <p>+917488348597</p>
+              
               </div>
             </div>
           </div>

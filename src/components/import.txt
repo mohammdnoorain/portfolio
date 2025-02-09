@@ -1,0 +1,644 @@
+#update
+apt update -y
+
+# creating new user 
+sudo useradd -m -s /bin/bash devopsadmin
+# giving all access to devopsadmin  user
+sudo usermod -aG sudo devopsadmin
+
+#name the masternode
+sudo hostnamectl set-hostname "kmaster-node"
+exec bash
+#rebooting
+
+reboot
+
+#To allow kubelet to work properly, we need to disable swap on both machines.
+sudo swapoff -a
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+##Installing  Docker :
+
+apt install docker.io -y
+
+#
+#Step 1. Install containerd	
+##Load the br_netfilter module required for networking.
+sudo modprobe overlay
+sudo modprobe br_netfilter
+cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
+EOF
+
+#To allow iptables to see bridged traffic, as required by Kubernetes, we need to set the values of certain fields to 1.
+
+sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+
+#Apply the new settings without restarting.
+
+sudo sysctl --system
+
+#Install curl.
+
+sudo apt install curl -y	
+
+
+#Get the apt-key and then add the repository from which we will install containerd.
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+
+#Update and then install the containerd package.
+#updating
+sudo apt update -y 
+#installing containerd
+
+sudo apt install -y containerd.io
+
+#Set up the default configuration file.
+
+sudo mkdir -p /etc/containerd
+sudo containerd config default | sudo tee /etc/containerd/config.toml
+
+#Next up, we need to modify the containerd configuration file and ensure that the cgroupDriver is set to systemd. To do so, #edit the following file:
+
+sudo vi /etc/containerd/config.toml
+#And ensure that value of SystemdCgroup is set to true Make sure the contents of your section match the following:
+
+#[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+#    BinaryName = ""
+#    CriuImagePath = ""
+#    CriuPath = ""
+#    CriuWorkPath = ""
+#    IoGid = 0
+#    IoUid = 0
+#    NoNewKeyring = false
+#    NoPivotRoot = false
+#    Root = ""
+#    ShimCgroup = ""
+##    SystemdCgroup = true
+
+
+#Finally, to apply these changes, we need to restart containerd.
+
+sudo systemctl restart containerd
+sudo systemctl status containerd
+
+
+#updating
+sudo apt-get update
+
+
+
+sudo apt-get install -y apt-transport-https ca-certificates curl gpg
+
+
+# If the directory `/etc/apt/keyrings` does not exist, it should be created before the curl command, read the note below.
+# sudo mkdir -p -m 755 /etc/apt/keyrings
+#mkdir /etc/apt/keyrings
+
+sudo mkdir -p -m 755 /etc/apt/keyrings
+
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+#updating
+sudo apt-get update
+#installing kubelet kubeadm kubectl
+
+sudo apt-get install -y kubelet kubeadm kubectl
+
+# enabling kubelet 
+sudo systemctl enable kubelet
+
+
+
+
+
+
+####  
+
+#Run the following command on the master node to allow Kubernetes to fetch the required images before cluster initialization:
+
+sudo kubeadm config images pull
+
+
+#The initialization may take a few moments to finish. Expect an output similar to the following:
+
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem
+
+
+#To start using your cluster, you need to run the following as a regular user:
+
+
+
+su - devopsadmin 
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+
+
+
+
+
+
+
+
+
+####################################################################
+
+
+
+
+import subprocess
+import fileinput
+import os
+
+def run_command(command):
+    """Runs a shell command and prints its output."""
+    try:
+        print(f"Running: {command}")
+        subprocess.run(command, shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred: {e}")
+
+# Update the system
+run_command("apt update -y")
+
+# Create a new user and give sudo access
+run_command("sudo useradd -m -s /bin/bash devopsadmin")
+run_command("sudo usermod -aG sudo devopsadmin")
+
+# Set the hostname for the master node
+run_command("sudo hostnamectl set-hostname 'kmaster-node'")
+run_command("exec bash")
+
+# Reboot the system
+run_command("reboot")
+
+# Disable swap
+run_command("sudo swapoff -a")
+run_command("sudo sed -i '/ swap / s/^\\(.*\\)$/#\\1/g' /etc/fstab")
+
+# Install Docker
+run_command("apt install docker.io -y")
+
+# Load required kernel modules
+run_command("sudo modprobe overlay")
+run_command("sudo modprobe br_netfilter")
+run_command("echo 'overlay\nbr_netfilter' | sudo tee /etc/modules-load.d/containerd.conf")
+
+# Set iptables to see bridged traffic
+run_command("sudo tee /etc/sysctl.d/kubernetes.conf <<EOF\nnet.bridge.bridge-nf-call-ip6tables = 1\nnet.bridge.bridge-nf-call-iptables = 1\nnet.ipv4.ip_forward = 1\nEOF")
+run_command("sudo sysctl --system")
+
+# Install curl
+run_command("sudo apt install curl -y")
+
+# Add Docker repository and install containerd
+run_command("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
+run_command("sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"")
+run_command("sudo apt update -y")
+run_command("sudo apt install -y containerd.io")
+
+# Configure containerd
+run_command("sudo mkdir -p /etc/containerd")
+run_command("sudo containerd config default | sudo tee /etc/containerd/config.toml")
+
+# Path to the config.toml file
+file_path = "/etc/containerd/config.toml"
+
+# Backup the original file
+backup_path = f"{file_path}.bak"
+os.system(f"sudo cp {file_path} {backup_path}")
+
+# Edit the file
+try:
+    with fileinput.FileInput(file_path, inplace=True, backup=".bak") as file:
+        for line in file:
+            # Replace "SystemdCgroup = false" with "SystemdCgroup = true"
+            print(line.replace("SystemdCgroup = false", "SystemdCgroup = true"), end="")
+    print("Successfully updated 'SystemdCgroup' to true.")
+except Exception as e:
+    print(f"An error occurred: {e}")
+
+# Restart containerd
+run_command("sudo systemctl restart containerd")
+run_command("sudo systemctl status containerd")
+
+# Install Kubernetes components
+run_command("sudo apt-get update")
+run_command("sudo apt-get install -y apt-transport-https ca-certificates curl gpg")
+run_command("sudo mkdir -p -m 755 /etc/apt/keyrings")
+run_command("curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg")
+run_command("echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list")
+run_command("sudo apt-get update")
+run_command("sudo apt-get install -y kubelet kubeadm kubectl")
+run_command("sudo systemctl enable kubelet")
+
+# Pull Kubernetes images
+run_command("sudo kubeadm config images pull")
+
+# Initialize the Kubernetes cluster
+run_command("sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem")
+
+# Set up kubeconfig for devopsadmin
+run_command("su - devopsadmin -c 'mkdir -p $HOME/.kube'")
+run_command("su - devopsadmin -c 'sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config'")
+run_command("su - devopsadmin -c 'sudo chown $(id -u):$(id -g) $HOME/.kube/config'")
+
+print("Kubernetes setup complete.")
+
+
+
+
+
+
+
+
+############################################################### master node code 1
+
+
+
+
+import subprocess
+import fileinput
+import os
+
+def run_command(command):
+    """Runs a shell command and prints its output."""
+    try:
+        print(f"Running: {command}")
+        subprocess.run(command, shell=True, check=True)
+        print(f"Successfully executed: {command}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while executing: {command}. Error: {e}")
+
+# Update the system
+print("Updating the system...")
+run_command("apt update -y")
+
+# Create a new user and give sudo access
+print("Creating a new user and granting sudo access...")
+run_command("sudo useradd -m -s /bin/bash devopsadmin")
+run_command("sudo usermod -aG sudo devopsadmin")
+
+# Set the hostname for the master node
+print("Setting hostname for the master node...")
+run_command("sudo hostnamectl set-hostname 'kmaster-node'")
+# run_command("exec bash")
+
+# Reboot the system
+# print("Rebooting the system...")
+run_command("reboot")
+
+# Disable swap
+print("Disabling swap...")
+run_command("sudo swapoff -a")
+run_command("sudo sed -i '/ swap / s/^\\(.*\\)$/#\\1/g' /etc/fstab")
+
+# Install Docker
+print("Installing Docker...")
+run_command("apt install docker.io -y")
+
+# Load required kernel modules
+print("Loading required kernel modules...")
+run_command("sudo modprobe overlay")
+run_command("sudo modprobe br_netfilter")
+run_command("echo 'overlay\nbr_netfilter' | sudo tee /etc/modules-load.d/containerd.conf")
+
+# Set iptables to see bridged traffic
+print("Setting iptables to see bridged traffic...")
+run_command("sudo tee /etc/sysctl.d/kubernetes.conf <<EOF\nnet.bridge.bridge-nf-call-ip6tables = 1\nnet.bridge.bridge-nf-call-iptables = 1\nnet.ipv4.ip_forward = 1\nEOF")
+run_command("sudo sysctl --system")
+
+# Install curl
+print("Installing curl...")
+run_command("sudo apt install curl -y")
+
+# Add Docker repository and install containerd
+print("Adding Docker repository and installing containerd...")
+run_command("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
+run_command("sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"")
+run_command("sudo apt update -y")
+run_command("sudo apt install -y containerd.io")
+
+# Configure containerd
+print("Configuring containerd...")
+run_command("sudo mkdir -p /etc/containerd")
+run_command("sudo containerd config default | sudo tee /etc/containerd/config.toml")
+
+# Path to the config.toml file
+file_path = "/etc/containerd/config.toml"
+
+# Backup the original file
+backup_path = f"{file_path}.bak"
+os.system(f"sudo cp {file_path} {backup_path}")
+
+# Edit the file
+try:
+    with fileinput.FileInput(file_path, inplace=True, backup=".bak") as file:
+        for line in file:
+            # Replace "SystemdCgroup = false" with "SystemdCgroup = true"
+            print(line.replace("SystemdCgroup = false", "SystemdCgroup = true"), end="")
+    print("Successfully updated 'SystemdCgroup' to true.")
+except Exception as e:
+    print(f"An error occurred while updating containerd config: {e}")
+
+# Restart containerd
+print("Restarting containerd...")
+run_command("sudo systemctl restart containerd")
+run_command("sudo systemctl status containerd")
+
+# Install Kubernetes components
+print("Installing Kubernetes components...")
+run_command("sudo apt-get update")
+run_command("sudo apt-get install -y apt-transport-https ca-certificates curl gpg")
+run_command("sudo mkdir -p -m 755 /etc/apt/keyrings")
+run_command("curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg")
+run_command("echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list")
+run_command("sudo apt-get update")
+run_command("sudo apt-get install -y kubelet kubeadm kubectl")
+run_command("sudo systemctl enable kubelet")
+
+# Pull Kubernetes images
+print("Pulling Kubernetes images...")
+run_command("sudo kubeadm config images pull")
+
+# Initialize the Kubernetes cluster
+print("Initializing the Kubernetes cluster...")
+run_command("sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem")
+
+# Set up kubeconfig for devopsadmin
+print("Setting up kubeconfig for devopsadmin...")
+run_command("su - devopsadmin -c 'mkdir -p $HOME/.kube'")
+run_command("su - devopsadmin -c 'sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config'")
+run_command("su - devopsadmin -c 'sudo chown $(id -u):$(id -g) $HOME/.kube/config'")
+run_command("su - devopsadmin -c 'kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml'")
+print("Kubernetes setup complete.")
+
+
+#################### master node code 2
+
+import subprocess
+import fileinput
+import os
+import time
+
+def run_command(command):
+    """Runs a shell command and prints its output."""
+    try:
+        print(f"Running: {command}")
+        subprocess.run(command, shell=True, check=True)
+        print(f"Successfully executed: {command}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while executing: {command}. Error: {e}")
+
+def is_rebooted():
+    """Checks if the system has rebooted by looking for a flag file."""
+    return os.path.exists('/tmp/reboot_flag')
+
+def create_reboot_flag():
+    """Creates a flag file to indicate the system is rebooting."""
+    with open('/tmp/reboot_flag', 'w') as f:
+        f.write("System has been rebooted")
+
+def clear_reboot_flag():
+    """Clears the reboot flag file."""
+    if os.path.exists('/tmp/reboot_flag'):
+        os.remove('/tmp/reboot_flag')
+
+# If the system is rebooted, continue from where the script left off
+if is_rebooted():
+    print("System has rebooted, continuing the script...")
+    clear_reboot_flag()  # Clear the flag after reboot
+
+else:
+    # Create a flag file indicating that the system is being rebooted
+    create_reboot_flag()
+
+    # Update the system
+    print("Updating the system...")
+    run_command("apt update -y")
+
+    # Create a new user and give sudo access
+    print("Creating a new user and granting sudo access...")
+    run_command("sudo useradd -m -s /bin/bash devopsadmin")
+    run_command("sudo usermod -aG sudo devopsadmin")
+
+    # Set the hostname for the master node
+    print("Setting hostname for the master node...")
+    run_command("sudo hostnamectl set-hostname 'kmaster-node'")
+
+    # Reboot the system
+    print("Rebooting the system...")
+    run_command("sudo reboot")
+
+    # Disable swap
+    print("Disabling swap...")
+    run_command("sudo swapoff -a")
+    run_command("sudo sed -i '/ swap / s/^\\(.*\\)$/#\\1/g' /etc/fstab")
+
+    # Install Docker
+    print("Installing Docker...")
+    run_command("apt install docker.io -y")
+
+    # Load required kernel modules
+    print("Loading required kernel modules...")
+    run_command("sudo modprobe overlay")
+    run_command("sudo modprobe br_netfilter")
+    run_command("echo 'overlay\nbr_netfilter' | sudo tee /etc/modules-load.d/containerd.conf")
+
+    # Set iptables to see bridged traffic
+    print("Setting iptables to see bridged traffic...")
+    run_command("sudo tee /etc/sysctl.d/kubernetes.conf <<EOF\nnet.bridge.bridge-nf-call-ip6tables = 1\nnet.bridge.bridge-nf-call-iptables = 1\nnet.ipv4.ip_forward = 1\nEOF")
+    run_command("sudo sysctl --system")
+
+    # Install curl
+    print("Installing curl...")
+    run_command("sudo apt install curl -y")
+
+    # Add Docker repository and install containerd
+    print("Adding Docker repository and installing containerd...")
+    run_command("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
+    run_command("sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"")
+    run_command("sudo apt update -y")
+    run_command("sudo apt install -y containerd.io")
+
+    # Configure containerd
+    print("Configuring containerd...")
+    run_command("sudo mkdir -p /etc/containerd")
+    run_command("sudo containerd config default | sudo tee /etc/containerd/config.toml")
+
+    # Path to the config.toml file
+    file_path = "/etc/containerd/config.toml"
+
+    # Backup the original file
+    backup_path = f"{file_path}.bak"
+    os.system(f"sudo cp {file_path} {backup_path}")
+
+    # Edit the file
+    try:
+        with fileinput.FileInput(file_path, inplace=True, backup=".bak") as file:
+            for line in file:
+                # Replace "SystemdCgroup = false" with "SystemdCgroup = true"
+                print(line.replace("SystemdCgroup = false", "SystemdCgroup = true"), end="")
+        print("Successfully updated 'SystemdCgroup' to true.")
+    except Exception as e:
+        print(f"An error occurred while updating containerd config: {e}")
+
+    # Restart containerd
+    print("Restarting containerd...")
+    run_command("sudo systemctl restart containerd")
+    run_command("sudo systemctl status containerd")
+
+    # Install Kubernetes components
+    print("Installing Kubernetes components...")
+    run_command("sudo apt-get update")
+    run_command("sudo apt-get install -y apt-transport-https ca-certificates curl gpg")
+    run_command("sudo mkdir -p -m 755 /etc/apt/keyrings")
+    run_command("curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg")
+    run_command("echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list")
+    run_command("sudo apt-get update")
+    run_command("sudo apt-get install -y kubelet kubeadm kubectl")
+    run_command("sudo systemctl enable kubelet")
+
+    # Pull Kubernetes images
+    print("Pulling Kubernetes images...")
+    run_command("sudo kubeadm config images pull")
+
+    # Initialize the Kubernetes cluster
+    print("Initializing the Kubernetes cluster...")
+    run_command("sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem")
+
+    # Set up kubeconfig for devopsadmin
+    print("Setting up kubeconfig for devopsadmin...")
+    run_command("su - devopsadmin -c 'mkdir -p $HOME/.kube'")
+    run_command("su - devopsadmin -c 'sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config'")
+    run_command("su - devopsadmin -c 'sudo chown $(id -u):$(id -g) $HOME/.kube/config'")
+    run_command("su - devopsadmin -c 'kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml'")
+    print("Kubernetes setup complete.")
+
+
+
+
+
+########################
+#################### worker node 
+
+
+import subprocess
+import fileinput
+import os
+
+def run_command(command):
+    """Runs a shell command and prints its output."""
+    try:
+        print(f"Running: {command}")
+        subprocess.run(command, shell=True, check=True)
+        print(f"Successfully executed: {command}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while executing: {command}. Error: {e}")
+
+# Update the system
+print("Updating the system...")
+run_command("apt update -y")
+
+# Create a new user and give sudo access
+print("Creating a new user and granting sudo access...")
+run_command("sudo useradd -m -s /bin/bash devopsadmin")
+run_command("sudo usermod -aG sudo devopsadmin")
+
+# Set the hostname for the master node
+print("Setting hostname for the master node...")
+run_command("sudo hostnamectl set-hostname 'kworker-node1'")
+#run_command("exec bash")
+
+# Reboot the system
+# print("Rebooting the system...")
+# run_command("reboot")
+
+# Disable swap
+print("Disabling swap...")
+run_command("sudo swapoff -a")
+run_command("sudo sed -i '/ swap / s/^\\(.*\\)$/#\\1/g' /etc/fstab")
+
+# Install Docker
+print("Installing Docker...")
+run_command("apt install docker.io -y")
+
+# Load required kernel modules
+print("Loading required kernel modules...")
+run_command("sudo modprobe overlay")
+run_command("sudo modprobe br_netfilter")
+run_command("echo 'overlay\nbr_netfilter' | sudo tee /etc/modules-load.d/containerd.conf")
+
+# Set iptables to see bridged traffic
+print("Setting iptables to see bridged traffic...")
+run_command("sudo tee /etc/sysctl.d/kubernetes.conf <<EOF\nnet.bridge.bridge-nf-call-ip6tables = 1\nnet.bridge.bridge-nf-call-iptables = 1\nnet.ipv4.ip_forward = 1\nEOF")
+run_command("sudo sysctl --system")
+
+# Install curl
+print("Installing curl...")
+
+# Add Docker repository and install containerd
+print("Adding Docker repository and installing containerd...")
+run_command("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
+run_command("sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"")
+run_command("sudo apt update -y")
+run_command("sudo apt install -y containerd.io")
+
+# Configure containerd
+print("Configuring containerd...")
+run_command("sudo mkdir -p /etc/containerd")
+run_command("sudo containerd config default | sudo tee /etc/containerd/config.toml")
+
+# Path to the config.toml file
+file_path = "/etc/containerd/config.toml"
+
+# Backup the original file
+backup_path = f"{file_path}.bak"
+os.system(f"sudo cp {file_path} {backup_path}")
+
+# Edit the file
+try:
+    with fileinput.FileInput(file_path, inplace=True, backup=".bak") as file:
+        for line in file:
+            # Replace "SystemdCgroup = false" with "SystemdCgroup = true"
+            print(line.replace("SystemdCgroup = false", "SystemdCgroup = true"), end="")
+    print("Successfully updated 'SystemdCgroup' to true.")
+except Exception as e:
+    print(f"An error occurred while updating containerd config: {e}")
+
+# Restart containerd
+print("Restarting containerd...")
+run_command("sudo systemctl restart containerd")
+run_command("sudo systemctl status containerd")
+
+# Install Kubernetes components
+print("Installing Kubernetes components...")
+run_command("sudo apt-get update")
+run_command("sudo apt-get install -y apt-transport-https ca-certificates curl gpg")
+run_command("sudo mkdir -p -m 755 /etc/apt/keyrings")
+run_command("curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg")
+run_command("echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list")
+run_command("sudo apt-get update")
+run_command("sudo apt-get install -y kubelet kubeadm kubectl")
+run_command("sudo systemctl enable kubelet")
+
+print("Kubernetes worker node setup complete.")
+
+
+
+
+
