@@ -62,6 +62,12 @@ import insurance18 from '../assets/insurance/insurance18.jpg';
 import { Dialog } from '@headlessui/react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
+// import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+// import { ChevronLeft, ChevronRight, X } from 'lucide-react'; // Added X for the close button
+// import { Dialog } from '@headlessui/react'; // Import Dialog for modal functionality
+
+
 const projects = [
     { id: 1, images: [pro1,bank1, bank2, bank3, bank4, bank5, bank6, bank7, bank8, bank9, bank10, bank11, bank12, bank13, bank14, bank15, bank16, bank17, bank18], link: "https://sadar-biotech-project.vercel.app/" },
 
@@ -107,10 +113,42 @@ const DevopsProject = () => {
       {isOpen && currentProject && (
         <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
           <div className="relative max-w-2xl w-full p-4">
-            <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 text-white"><X size={24} /></button>
-            <button onClick={prevSlide} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white"><ChevronLeft size={32} /></button>
-            <img src={currentProject.images[currentIndex]} alt="Project" className="w-full h-auto rounded-lg" />
-            <button onClick={nextSlide} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white"><ChevronRight size={32} /></button>
+            {/* Close button with higher z-index */}
+            <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 text-purple-600 z-10">
+              <X size={34} />
+            </button>
+            
+            {/* Image Slider with animations */}
+            <div className="relative">
+              <AnimatePresence initial={false} mode="wait">
+                <motion.img
+                  key={currentIndex}
+                  src={currentProject.images[currentIndex]}
+                  alt="Project"
+                  className="w-full h-auto rounded-lg"
+                  initial={{ opacity: 0, x: 100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ duration: 0.5 }}
+                />
+              </AnimatePresence>
+
+              {/* Left Arrow Button (styled as per ImageSlider) */}
+              <button
+                onClick={prevSlide}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-primary-color p-2 rounded-full shadow-lg text-white hover:scale-105 z-10"
+              >
+                <ChevronLeft />
+              </button>
+
+              {/* Right Arrow Button (styled as per ImageSlider) */}
+              <button
+                onClick={nextSlide}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-primary-color p-2 rounded-full shadow-lg text-white hover:scale-105 z-10"
+              >
+                <ChevronRight />
+              </button>
+            </div>
           </div>
         </Dialog>
       )}
