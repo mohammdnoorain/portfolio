@@ -11,11 +11,11 @@ const Work = () => {
           <div className="mb-4 flex items-center item-center justify-between">
             <div className="flex flex-col gap-4">
               <h2 className="text-2xl lg:text-3xl text-white">
-                My <span>Projects</span>
+                My <span> Development Projects </span>
               </h2>
 
               <p className="text-gray-500">
-                these are my latest projects for different clients.
+                these are my latest projects as a Developer for different clients.
               </p>
             </div>
           </div>

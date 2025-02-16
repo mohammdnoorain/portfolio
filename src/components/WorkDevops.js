@@ -1,8 +1,26 @@
 import React, { useState } from "react";
-
+import ImageSlider from "./ImageSlider";
 const WorkDevops = () => {
   const [activeBox, setActiveBox] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+  
+  const images = [
+    '/assets/img1.png',
+    '/assets/img2.png',
+    '/assets/img3.png',
+    '/assets/img4.png'
+  ];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const nextSlide = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
+  };
+
 
   const boxes = [
     {
@@ -270,6 +288,7 @@ const WorkDevops = () => {
   };
 
   return (
+
     <>
       <div className="py-6 max-w-[1200px] mx-auto" id="work">
         <div className="mx-auto px-4 md:px-8">
@@ -284,6 +303,9 @@ const WorkDevops = () => {
               </p>
             </div>
           </div>
+
+             <ImageSlider/>
+
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {boxes.map((box, index) => (

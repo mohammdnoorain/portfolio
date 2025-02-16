@@ -10,6 +10,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import WorkDevops from './components/WorkDevops';
 import DevOpsTool from './components/DevopsTool';
+import DevopsProject from './components/DevopsProject';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
 <Hero/>
 <About/>
 <DevOpsTool/>
+<DevopsProject/>
 <WorkDevops/>
 <Work/>
 <Experience/>
