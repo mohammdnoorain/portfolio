@@ -9,6 +9,7 @@ const DevOpsTool = () => {
     { title: "Monitoring & Logging", items: ["Prometheus", "Grafana"] },
     { title: "Cloud Platforms", items: ["AWS", "Azure"] },
     { title: "Scripting", items: ["Python", "Bash", "Groovy", "YAML"] },
+    { title: "Code Quality & Repositories", items: ["SonarQube", "Nexus"] },
   ];
 
   return (
@@ -17,7 +18,7 @@ const DevOpsTool = () => {
         <div className="mb-4 flex items-center justify-between">
           <div className="flex flex-col gap-4">
             <h2 className="text-2xl lg:text-3xl text-white">
-              <span>DevOps Tools i know</span>
+              <span>DevOps Tools I Know</span>
             </h2>
             <p className="text-gray-500">
               These are the tools I work with in the DevOps ecosystem.
@@ -27,11 +28,11 @@ const DevOpsTool = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {tools.map((tool, index) => (
-            <div key={index} className="p-4 bg-gray-800 text-white rounded-lg shadow-lg">
+            <div key={index} className="p-4 bg-gray-800 text-white rounded-lg shadow-lg hover:bg-gray-700 transition duration-300">
               <h3 className="text-xl font-semibold">{tool.title}</h3>
               <ul className="mt-4 space-y-2">
                 {tool.items.map((item, idx) => (
-                  <li key={idx} className="p-2 bg-gray-700 rounded-lg">
+                  <li key={idx} className="p-2 bg-gray-700 rounded-lg hover:bg-black transition duration-300">
                       <span>{item}</span>
                   </li>
                 ))}

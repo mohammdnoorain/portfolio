@@ -83,7 +83,7 @@ const Hero = () => {
 
         <div className="my-auto">
           <img
-            className="w-[200px] sm:w-[500px] mx-auto h-auto rounded-full"
+            className="w-[20px] sm:w-[500px] mx-auto h-auto rounded-full"
             src={profilepic}
           />
         </div>

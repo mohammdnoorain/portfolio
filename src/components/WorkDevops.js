@@ -49,6 +49,195 @@ const WorkDevops = () => {
         },
       ],
     },
+
+    {
+      title: "Bash Scripts",
+      items: [
+        { name: "Sonarqube Setup", content: (
+          
+
+          <div className="p-6 bg-gray-800 text-white rounded-xl shadow-lg">
+           <h1>SonarQube Installation Script</h1>
+           <code>
+
+<p>#!/bin/bash</p>
+
+<p>cp /etc/sysctl.conf /root/sysctl.conf_backup</p>
+<p>cat &lt;&lt;EOT&gt; /etc/sysctl.conf</p>
+<p>vm.max_map_count=262144</p>
+<p>fs.file-max=65536</p>
+<p>ulimit -n 65536</p>
+<p>ulimit -u 4096</p>
+<p>EOT</p>
+
+<p>cp /etc/security/limits.conf /root/sec_limit.conf_backup</p>
+<p>ccat &lt;&lt;EOT&gt; /etc/security/limits.conf</p>
+<p>sonarqube   -   nofile   65536</p>
+<p>sonarqube   -   nproc    409</p>
+<p>EOT</p>
+
+<h2>Install Java</h2>
+<p>sudo apt-get update -y</p>
+<p>sudo apt-get install openjdk-17-jdk -y</p>
+<p>sudo update-alternatives --config java</p>
+<p>java -version</p>
+
+<h2>Install PostgreSQL</h2>
+<p>sudo apt update</p>
+<p>wget -q https://www.postgresql.org/media/keys/ACCC4CF8.asc -O - | sudo apt-key add -</p>
+<p>sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'</p>
+<p>sudo apt install postgresql postgresql-contrib -y</p>
+<p>sudo systemctl enable postgresql.service</p>
+<p>sudo systemctl start  postgresql.service</p>
+<p>sudo echo "postgres:admin123" | chpasswd</p>
+<p>runuser -l postgres -c "createuser sonar"</p>
+<p>sudo -i -u postgres psql -c "ALTER USER sonar WITH ENCRYPTED PASSWORD 'admin123';"</p>
+<p>sudo -i -u postgres psql -c "CREATE DATABASE sonarqube OWNER sonar;"</p>
+<p>sudo -i -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE sonarqube to sonar;"</p>
+<p>systemctl restart  postgresql</p>
+<p>netstat -tulpena | grep postgres</p>
+
+<h2>Download and Configure SonarQube</h2>
+<p>sudo mkdir -p /sonarqube/</p>
+<p>cd /sonarqube/</p>
+<p>sudo curl -O https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.9.7.96285.zip</p>
+<p>sudo apt-get install zip -y</p>
+<p>sudo unzip -o sonarqube-9.9.7.96285.zip -d /opt/</p>
+<p>sudo mv /opt/sonarqube-9.9.7.96285/ /opt/sonarqube</p>
+<p>sudo groupadd sonar</p>
+<p>sudo useradd -c "SonarQube - User" -d /opt/sonarqube/ -g sonar sonar</p>
+<p>sudo chown sonar:sonar /opt/sonarqube/ -R</p>
+
+<p>cp /opt/sonarqube/conf/sonar.properties /root/sonar.properties_backup</p>
+<p>cat &lt;&lt;EOT&gt; /opt/sonarqube/conf/sonar.properties</p>
+<p>sonar.jdbc.username=sonar</p>
+<p>sonar.jdbc.password=admin123</p>
+<p>sonar.jdbc.url=jdbc:postgresql://localhost/sonarqube</p>
+<p>sonar.web.host=0.0.0.0</p>
+<p>sonar.web.port=9000</p>
+<p>sonar.web.javaAdditionalOpts=-server</p>
+<p>sonar.search.javaOpts=-Xmx512m -Xms512m -XX:+HeapDumpOnOutOfMemoryError</p>
+<p>sonar.log.level=INFO</p>
+<p>sonar.path.logs=logs</p>
+<p>EOT</p>
+
+<h2>Create SonarQube Service</h2>
+<p>cat &lt;&lt;EOT&gt; /etc/systemd/system/sonarqube.service</p>
+<p>[Unit]</p>
+<p>Description=SonarQube service</p>
+<p>After=syslog.target network.target</p>
+<p>[Service]</p>
+<p>Type=forking</p>
+<p>ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start</p>
+<p>ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop</p>
+<p>User=sonar</p>
+<p>Group=sonar</p>
+<p>Restart=always</p>
+<p>LimitNOFILE=65536</p>
+<p>LimitNPROC=4096</p>
+<p>[Install]</p>
+<p>WantedBy=multi-user.target</p>
+<p>EOT</p>
+
+<p>systemctl daemon-reload</p>
+<p>systemctl enable sonarqube.service</p>
+
+<h2>Install Nginx</h2>
+<p>apt-get install nginx -y</p>
+<p>rm -rf /etc/nginx/sites-enabled/default</p>
+<p>rm -rf /etc/nginx/sites-available/default</p>
+
+<p>cat &lt;&lt;EOT&gt; /etc/nginx/sites-available/sonarqube</p>
+<p>server</p>
+<p>    listen      80;</p>
+<p>    server_name sonarqube.groophy.in;</p>
+<p>    access_log  /var/log/nginx/sonar.access.log;</p>
+<p>    error_log   /var/log/nginx/sonar.error.log;</p>
+<p>    proxy_buffers 16 64k;</p>
+<p>    proxy_buffer_size 128k;</p>
+<p>    location / </p>
+<p>        proxy_pass  http://127.0.0.1:9000;</p>
+<p>        proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;</p>
+<p>        proxy_redirect off;</p>
+<p>        proxy_set_header    Host            \$host;</p>
+<p>        proxy_set_header    X-Real-IP       \$remote_addr;</p>
+<p>        proxy_set_header    X-Forwarded-For \$proxy_add_x_forwarded_for;</p>
+<p>        proxy_set_header    X-Forwarded-Proto http;</p>
+<p>    
+
+</p>
+<p>
+
+</p>
+<p>EOT</p>
+
+<p>ln -s /etc/nginx/sites-available/sonarqube /etc/nginx/sites-enabled/sonarqube</p>
+<p>systemctl enable nginx.service</p>
+<p>sudo ufw allow 80,9000,9001/tcp</p>
+
+<h2>Reboot System</h2>
+<p>echo "System reboot in 30 sec"</p>
+<p>sleep 30</p>
+<p>reboot</p>
+
+            
+</code>
+          </div>
+        )
+        },
+        { name: "Nexus Setup", content: (
+          <div>
+          
+            <div className="p-6 bg-gray-800 text-white rounded-xl shadow-lg">
+      <h1 className="text-2xl font-bold mb-4">Nexus Setup</h1>
+      <p className="mb-2">#!/bin/bash</p>
+      <p>sudo rpm --import https://yum.corretto.aws/corretto.key</p>
+      <p>sudo curl -L -o /etc/yum.repos.d/corretto.repo https://yum.corretto.aws/corretto.repo</p>
+      <p>sudo yum install -y java-17-amazon-corretto-devel wget -y</p>
+      <p>mkdir -p /opt/nexus/</p>
+      <p>mkdir -p /tmp/nexus/</p>
+      <p>cd /tmp/nexus/</p>
+      <p>NEXUSURL="https://download.sonatype.com/nexus/3/latest-unix.tar.gz"</p>
+      <p>wget $NEXUSURL -O nexus.tar.gz</p>
+      <p>sleep 10</p>
+      <p>EXTOUT=`tar xzvf nexus.tar.gz`</p>
+      <p>NEXUSDIR=`echo $EXTOUT | cut -d '/' -f1`</p>
+      <p>sleep 5</p>
+      <p>rm -rf /tmp/nexus/nexus.tar.gz</p>
+      <p>cp -r /tmp/nexus/* /opt/nexus/</p>
+      <p>sleep 5</p>
+      <p>useradd nexus</p>
+      <p>chown -R nexus.nexus /opt/nexus</p>
+      <p>cat &lt;&lt;EOT&gt;&gt; /etc/systemd/system/nexus.service</p>
+      <p>[Unit]</p>
+      <p>Description=nexus service</p>
+      <p>After=network.target</p>
+      <p>[Service]</p>
+      <p>Type=forking</p>
+      <p>LimitNOFILE=65536</p>
+      <p>ExecStart=/opt/nexus/$NEXUSDIR/bin/nexus start</p>
+      <p>ExecStop=/opt/nexus/$NEXUSDIR/bin/nexus stop</p>
+      <p>User=nexus</p>
+      <p>Restart=on-abort</p>
+      <p>[Install]</p>
+      <p>WantedBy=multi-user.target</p>
+      <p>EOT</p>
+      <p>echo 'run_as_user="nexus"' &gt; /opt/nexus/$NEXUSDIR/bin/nexus.rc</p>
+      <p>systemctl daemon-reload</p>
+      <p>systemctl start nexus</p>
+      <p>systemctl enable nexus</p>
+    </div>
+
+
+          </div>
+        )
+        }
+          
+          
+      ],
+    },
+
+
     {
       title: "Kubernetes Scripts",
       items: [
