@@ -70,8 +70,8 @@ const Hero = () => {
             <div className="absolute transition-all duration-1000 backdrop-opacity-70 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-lg group-hover:opacity-100 group-hover:-insert-1 group-hover:duration-200 animate-tilt"></div>
           </div>
           <a
-           href="/DevOps_compressed.pdf"
-           download="DevOps_compressed.pdf"
+           href="/DevOps-CV.pdf"
+           download="/DevOps-CV.pdf"
             title="Download CV"
             role="button"
             className="w-[190px] h-[60px] relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-primary-color font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
