@@ -10,7 +10,7 @@ const Experience = () => {
           <p className='text-gray-400'>(Jan 2024 - Dec 2024)</p>
           <p className='text-gray-500'>
             At PitchCats Pvt Ltd, I worked as a DevOps Engineer, where I contributed to creating and maintaining 
-            CI/CD pipelines using Jenkins and GitLab CI. I automated infrastructure provisioning with tools like 
+            CI/CD pipelines using Jenkins. I automated infrastructure provisioning with tools like 
             Ansible and Terraform and managed containerized applications with Docker and Kubernetes. I also 
             implemented monitoring solutions using Prometheus and Grafana, improving system reliability and reducing 
             downtime.

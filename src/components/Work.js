@@ -1,7 +1,7 @@
 import React from "react";
 import pro1 from '../assets/pro-1.png'
 import pro2 from '../assets/pro-2.png'
-import pro3 from '../assets/pro-3.png'
+import pro3 from '../assets/portfolio2.png'
 import pro4 from '../assets/pro-4.png'
 const Work = () => {
   return (
